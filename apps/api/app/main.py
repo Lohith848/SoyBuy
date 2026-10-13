@@ -109,6 +109,7 @@ def create_app() -> FastAPI:
     # Routers
     prefix = "/api/v1"
     app.include_router(health.router, tags=["Health"])
+    app.include_router(health.router, prefix=prefix, tags=["Health"])
     app.include_router(series.router, prefix=prefix, tags=["Series"])
     app.include_router(uploads.router, prefix=prefix, tags=["Uploads"])
     app.include_router(settings_router.router, prefix=prefix, tags=["Settings"])

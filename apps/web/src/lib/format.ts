@@ -7,7 +7,7 @@ export const decimalFormatter = new Intl.NumberFormat('en-IN', {
 });
 
 export function formatInrPerT(value: number | null | undefined): string {
-  return value == null ? '—' : `₹${inrFormatter.format(value)}/t`;
+  return value == null ? '—' : `₹${inrFormatter.format(Math.round(value))}/t`;
 }
 
 export function formatUsdPerT(value: number | null | undefined): string {
@@ -33,3 +33,24 @@ export function formatDate(value: string | null | undefined): string {
     timeZone: 'UTC',
   }).format(date);
 }
+
+// Aliases used across components
+export const fmtINR = (v: number | null | undefined): string => {
+  if (v == null) return '—';
+  return `₹${Math.round(v).toLocaleString('en-IN')}`;
+};
+
+export const fmtINRPerT = (v: number | null | undefined): string => {
+  if (v == null) return '—';
+  return `${fmtINR(v)}/t`;
+};
+
+export const fmtCr = (v: number | null | undefined): string => {
+  if (v == null) return '—';
+  return `₹${(v / 1_00_00_000).toFixed(2)} Cr`;
+};
+
+export const fmtUSD = (v: number | null | undefined): string => {
+  if (v == null) return '—';
+  return `$${v.toFixed(2)}`;
+};
