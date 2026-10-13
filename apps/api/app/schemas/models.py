@@ -58,6 +58,33 @@ class SettingsModel(BaseModel):
     shortage_penalty_multiplier: float = Field(default=5.0, description="Penalty relative to max cost")
     risk_weight: float = Field(default=0.0, description="Weight on high cost path (0=likely, 1=high)")
 
+    # General enterprise settings
+    company_name: str = Field(default="ABT-CPD Agri-Business", description="Enterprise company name")
+    currency: str = Field(default="INR", description="Base accounting currency")
+    timezone: str = Field(default="Asia/Kolkata", description="Operating timezone")
+    language: str = Field(default="en-IN", description="Display language")
+
+    # Forecast configuration
+    forecast_horizon_weeks: int = Field(default=12, description="Prediction horizon in weeks")
+    confidence_interval: str = Field(default="80% (p10-p90)", description="Quantile confidence band")
+    model_selection: str = Field(default="qgbm", description="Forecasting model (qgbm, ets, seasonal_naive, persistence)")
+
+    # Simulation knobs
+    timestep: str = Field(default="weekly", description="Simulation timestep")
+    simulation_duration_weeks: int = Field(default=12, description="Simulation duration in weeks")
+    update_frequency: str = Field(default="Every Monday 06:00 IST", description="Auto recalculation cadence")
+
+    # Data preferences
+    upload_preference: str = Field(default="strict", description="Validation mode")
+    overwrite_options: str = Field(default="version_on_conflict", description="Conflict resolution")
+    duplicate_policy: str = Field(default="reject_duplicates", description="Duplicate row policy")
+
+    # System & governance
+    cache_enabled: bool = Field(default=True, description="Enable database query caching")
+    backup_policy: str = Field(default="continuous_wal", description="Database backup policy")
+
+    model_config = {"extra": "allow"}
+
 
 # ============================================================================
 # Series & Observations
