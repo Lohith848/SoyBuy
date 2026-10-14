@@ -1,9 +1,8 @@
 # SoyBuy — Data-Driven Dynamic Soybean Procurement Strategy
 
-> **Enterprise Decision Support System for Commercial Soybean Crushing Operations**  
-> **Problem Statement:** PS-035 | **Theme:** THEME-04 (AI/ML & Predictive Decision Support)  
+> **Enterprise Decision Support System for Commercial Soybean Crushing Operations**    
 > **Target Enterprise:** ABT-CPD (Agri-Business Trading - Crush Plant Division)  
-> **Status:** Production-Ready Monorepo | **License:** MIT
+
 
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014%20(App%20Router)-black?logo=next.js&logoColor=white)](https://nextjs.org/)
