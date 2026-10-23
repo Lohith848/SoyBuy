@@ -383,3 +383,8 @@ SoyBuy implements an unyielding zero-hallucination architecture:
 ## License
   
 - **License:** Distributed under the MIT License. See `LICENSE` for more information.
+
+
+## By 
+
+- **Lohith G**
