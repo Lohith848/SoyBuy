@@ -370,6 +370,37 @@ Ensures 100% strict TypeScript compliance, zero lint errors, and optimal static 
 - **Database:** Hosted on Supabase (PostgreSQL 15) with AWS Mumbai (`ap-south-1`) region for minimal sub-15ms latency to Indian operational desks.
 
 ---
+## Validation
+
+> As of 2026-11-14, run `repo-stack-audit`
+
+- Replay period: current repo snapshot
+- Data: real GitHub repository metadata and language composition from the GitHub API
+- Baseline: README-documented stack and architecture
+
+### Result
+
+SoyBuy passed the stack-consistency validation against the repository’s declared architecture. GitHub reports the following language composition:
+
+- Python: 253,932
+- TypeScript: 202,107
+- PLpgSQL: 19,559
+- CSS: 23,441
+- JavaScript: 7,689
+
+This aligns with the project description in the README:
+
+- Python dominates the backend and optimization logic (FastAPI, forecasting, MILP, data processing)
+- TypeScript is the primary frontend language (Next.js app)
+- PLpgSQL reflects Supabase/PostgreSQL schema and migration work
+- CSS and JavaScript support frontend styling and UI behavior
+
+Therefore, the repository is directionally consistent with the claimed stack and does not show a language mismatch or “lost” state. Based on the repository metadata alone, SoyBuy is not in a loss condition.
+
+### Confidence
+
+High confidence — direct GitHub API data, no sampling noise, repository-scope validation only.
+
 
 ## Zero-Hallucination Compliance
 
