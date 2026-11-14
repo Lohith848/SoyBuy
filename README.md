@@ -34,18 +34,20 @@
 
 ## Executive Overview
 
-Soybean is the primary raw material for **ABT-CPD**'s commercial solvent extraction plant (crushing 250 tonnes/day $\approx$ 1,750 tonnes/week). Soybean market prices fluctuate wildly due to monsoon variability, seasonal kharif harvest arrivals, and global macroeconomic trade shifts. 
+Soybean is the primary raw material for **ABT-CPD**'s commercial solvent extraction plant. This prototype uses a set of illustrative operating assumptions for a plant-level procurement desk and does not claim to represent confirmed client facts until the relevant ABT-CPD values are validated.
 
-Crush plant procurement faces a multi-faceted challenge:
-1. **Timing:** Avoiding peak lean-season price premiums (June–August) and accumulating stock during post-harvest arrival discounts (October–December).
-2. **Sourcing Arbitrage:** Dynamically comparing domestic spot mandis (Indore, Latur, Akola) with international ocean imports (CIF Nhava Sheva from US/Brazil) on a true delivered mill landed cost parity basis.
-3. **Operational Constraints:** Managing vertical steel silo capacity (4,500 tonnes), safety buffer floors (1,200 tonnes), discrete integer ordering lots (25 t truckloads vs 500 t container clusters), and multi-echelon lead times (7 days domestic vs 35 days ocean import).
+The objective of SoyBuy is to support commercial procurement decisions by combining public market data, internal procurement/stock signals, and mathematically grounded optimization and forecast logic. The core workflow is designed to help a buyer or manager answer: when to buy, how much to buy, whether to source domestically or by import, and which assumptions are driving the recommendation.
 
-### Proven Quantitative Impact
-* **4.18% Direct Procurement Cost Reduction** (~**₹3.78 Crore saved** per 18,200 tonnes crushed).
-* **0 Stockout Days** and **100% Factory Continuity** maintained across 52 simulated weeks.
-* **82.5% Empirical Coverage** on 12-week probabilistic price forecast bands using Conformalized Quantile Regression (CQR).
-* **Sub-200ms API Latency** and zero-hallucination deterministic explainability.
+The prototype architecture is intentionally conservative:
+1. **Timing:** Evaluate price signals across the next 12 weeks and compare near-term procurement opportunities against stock cover, service levels, and lead times.
+2. **Sourcing Arbitrage:** Compare domestic benchmark costs with import parity on a landed-cost basis using assumptions that are versioned and editable rather than hard-coded as plant facts.
+3. **Operational Constraints:** Model stock, safety stock, lot sizes, pipeline arrivals, and storage limits as versioned inputs so that changes are transparent and auditable.
+4. **Decision Integrity:** Report metrics only when a replay or forecast run has been generated and recorded with run metadata; no unsupported claim is presented as a proven result.
+
+### Prototype / Pending Verification Metrics
+* The project follows a strict zero-hallucination policy: any savings, latency, forecast coverage, or continuity claim must be tied to a replay or forecast run ID, period, and setting version.
+* Exact operational KPIs such as percent savings, stockout days, or forecast coverage are intentionally not advertised here without a verified run on confirmed inputs.
+* This README therefore presents the product, architecture, and implementation approach rather than claiming benchmark results that have not been tied to a reproducible run.
 
 ---
 
@@ -56,13 +58,13 @@ Crush plant procurement faces a multi-faceted challenge:
   - CBOT Continuous Front-Month Futures (`ZS=F` via Yahoo Finance).
   - Currency Exchange Rate (USD/INR ECB reference rate via keyless Frankfurter API).
   - World Bank Pink Sheet Monthly Benchmark.
-- **12-Week Quantile Price Forecasting:** Multi-horizon probabilistic forecasting ($p_{10}, p_{50}, p_{90}$) utilizing Quantile Gradient Boosting (`HistGradientBoostingRegressor(loss='quantile')`), Holt-Winters ETS, and rolling walk-forward Pinball Loss model selection with Conformalized Quantile Regression (CQR) calibration.
-- **Formulaic Landed Cost Parity:** Granular comparison between domestic road haulage (base price + 1.5% APMC fee + 1.0% commission + freight + handling + shrinkage) and international CIF ocean shipping (CBOT + ocean freight + marine insurance + 5.0% AIDC cess + port handling + rail haulage + financing carry cost).
-- **Mixed-Integer Linear Programming (MILP) Optimizer:** Solves discrete weekly lot ordering over a 12-week rolling horizon using the PuLP/CBC C++ solver, enforcing inventory mass balance, safety buffers, silo capacity ceilings, and multi-echelon lead-time pipelines.
-- **Interactive What-If Scenario Sandbox:** Real-time sliders allowing buyers to stress-test plans against mandi price surges, CBOT swings, USD/INR depreciation, transit delays, and demand spikes with sub-second re-optimization.
-- **Zero-Hallucination Explanations:** Fact-grounded rule template engine linking every recommendation bullet point directly to mathematical facts and database run IDs without ungrounded LLM inference.
+- **12-Week Quantile Price Forecasting:** Multi-horizon probabilistic forecasting ($p_{10}, p_{50}, p_{90}$) utilizing Quantile Gradient Boosting (`HistGradientBoostingRegressor(loss='quantile')`) with conformal calibration and model selection rules.
+- **Formulaic Landed Cost Parity:** Granular comparison between domestic and import routes based on configurable cost inputs, with all rates and assumptions versioned and editable rather than hidden as fixed constants.
+- **Mixed-Integer Linear Programming (MILP) Optimizer:** Solves discrete weekly lot ordering over a 12-week rolling horizon using the PuLP/CBC C++ solver, enforcing inventory mass balance, safety stock, storage bounds, lead times, and pipeline arrivals.
+- **Interactive What-If Scenario Sandbox:** Real-time sliders allowing buyers to stress-test plans against mandi price surges, CBOT swings, USD/INR depreciation, transit delays, and demand spikes.
+- **Zero-Hallucination Explanations:** Fact-grounded rule template engine linking recommendation bullets to mathematical facts and database run IDs without ungrounded LLM inference.
 - **Human-in-the-Loop Governance:** Dedicated executive approval portal for **Approve**, **Modify**, and **Reject** actions recorded to an append-only, cryptographically audited PostgreSQL log.
-- **Walk-Forward Historical Replay (Backtesting):** 52-week historical simulation comparing dynamic procurement against static reorder point baselines with 2,000 block-bootstrap resamples for 95% confidence intervals.
+- **Walk-Forward Historical Replay (Backtesting):** Compares dynamic procurement logic against baseline strategies over a historical series and reports confidence intervals only for runs that have been executed and stored with provenance metadata.
 
 ---
 
@@ -151,7 +153,7 @@ SoyBean/
 │   │   │   ├── schemas/                 # Pydantic v2 request/response models
 │   │   │   └── services/                # Pure mathematical algorithms
 │   │   │       ├── adapters/            # External market feed parsers
-│   │   │       ├── backtest.py          # 52-week walk-forward replay engine
+│   │   │       ├── backtest.py          # Historical replay engine
 │   │   │       ├── data_store.py        # Pipeline coordinator & state store
 │   │   │       ├── explain.py           # Template-based explanation engine
 │   │   │       ├── forecast.py          # Quantile GBM & CQR calibration
@@ -162,10 +164,10 @@ SoyBean/
 │   │   └── requirements.txt             # Python dependencies
 │   └── web/                             # Next.js 14 Frontend Application
 │       ├── src/
-│       │   ├── app/
+│       ���   ├── app/
 │       │   │   ├── globals.css          # Design tokens & flat UI stylesheet
 │       │   │   ├── layout.tsx           # Shell layout with theme metadata
-│       │   │   └── page.tsx             # 7 interactive desk screens & modals
+│       │   │   └── page.tsx             # Tabbed dashboard shell with interactive desk sections & modals
 │       │   └── lib/
 │       │       ├── format.ts            # Indian currency & agricultural unit formatters
 │       │       └── types.ts             # TypeScript interface contracts
@@ -395,7 +397,7 @@ This aligns with the project description in the README:
 - PLpgSQL reflects Supabase/PostgreSQL schema and migration work
 - CSS and JavaScript support frontend styling and UI behavior
 
-Therefore, the repository is directionally consistent with the claimed stack and does not show a language mismatch or “lost” state. Based on the repository metadata alone, SoyBuy is not in a loss condition.
+Therefore, the repository is directionally consistent with the claimed stack and does not show a language mismatch or “lost” state. Based on the repository metadata alone, SoyBuy is not in a ...
 
 ### Confidence
 
