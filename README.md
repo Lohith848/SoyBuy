@@ -1,4 +1,4 @@
-# SoyBuy — Data-Driven Dynamic Soybean Procurement Strategy
+#SoyBuy - A Data-Driven Procurement Decision Support System for Soybean Purchasing
 
 > **Enterprise Decision Support System for Commercial Soybean Crushing Operations**    
 > **Target Enterprise:** ABT-CPD (Agri-Business Trading - Crush Plant Division)  
