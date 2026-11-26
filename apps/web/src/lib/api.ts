@@ -10,7 +10,10 @@ import {
   SeriesStatus,
 } from './types';
 
-const BASE_URL = '/api/v1';
+// The Vercel project routes /api/* to the API service. Set this only for a
+// separately hosted/local API; leave unset in Vercel so requests use the
+// same-origin service rewrite.
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
