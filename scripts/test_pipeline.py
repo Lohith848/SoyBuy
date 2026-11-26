@@ -1,9 +1,12 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath("apps/api"))
-import dotenv
-dotenv.load_dotenv()
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "apps", "api"))
+import dotenv
+dotenv.load_dotenv(os.path.join(ROOT, ".env"))
+
+# pyrefly: ignore [missing-import]
 from app.services.data_store import store
 
 print("1. Testing get_latest_prices():", flush=True)

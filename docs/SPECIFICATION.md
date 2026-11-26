@@ -88,7 +88,7 @@ A production-grade Soybean Procurement Decision Support System that:
 * **Storage Infrastructure:** Vertical steel grain silos with 4,500 tonnes aggregate capacity.
 * **Safety Stock Target:** 1,200 tonnes minimum buffer ($\approx 4.8$ days of continuous operations).
 * **Value Delivered by SoyBuy:**
-  - **4.18% Procurement Cost Reduction:** Proven through point-in-time walk-forward backtesting against benchmark static reorder policies (saving ₹3.78 Cr per 18,200 tonnes crushed).
+  - **Procurement Cost Reduction:** Measured by the walk-forward replay against benchmark static reorder policies. No saving figure is claimed here; the reproducible result (including its caveats) is reported in README "Validation".
   - **Zero Stockouts:** Guaranteeing 100% factory utilization without plant downtime.
   - **Transparent Governance:** Complete audit trail preventing maverick buying and rogue trades.
 
@@ -1196,7 +1196,7 @@ The design strictly enforces flat, high-contrast, zero-blur aesthetics to guaran
 |---|---|---|---|---|
 | **Canvas Background** | `--paper` | `#f4f3ed` | Application shell backdrop | Baseline ($1:1$) |
 | **Card White** | `--white` | `#fffefa` | Panel containers & table rows | Clean flat surface |
-| **Deep Ink Text** | `--ink` | `#20251d` | Headers, primary data figures | **$13.4:1$** (Exceeds $4.5:1$ requirement) |
+| **Deep Ink Text** | `--ink` | `#20251d` | Headers, primary data figures | **$15.49:1$** on `--white`, $14.06:1$ on `--paper` (exceeds $4.5:1$) |
 | **Muted Slate** | `--muted` | `#7b8176` | Subtitles, units, table headers | **$4.7:1$** (Passes $4.5:1$ requirement) |
 | **Crisp Line Border** | `--line` | `#e5e5dc` | 1px card boundaries, table grid | **$3.2:1$** (Passes $3:1$ UI border requirement) |
 | **Forest Green (Primary)** | `--green` | `#4f6b3e` | Primary buttons, approved badges | **$5.2:1$** (Passes $4.5:1$) |
@@ -1235,7 +1235,7 @@ The design strictly enforces flat, high-contrast, zero-blur aesthetics to guaran
 │                 │ Lead times, Duties, Freight rates, Storage limits)   │
 ├─────────────────┼──────────────────────────────────────────────────────┤
 │ 7. Backtest     │ Historical Strategy Replay: Dynamic vs Static Policy,│
-│                 │ 4.18% cumulative savings, Block-bootstrap bounds     │
+│                 │ Replay savings + block-bootstrap bounds (from run)    │
 └─────────────────┴──────────────────────────────────────────────────────┘
 ```
 
@@ -1321,5 +1321,5 @@ pnpm build
 | **AI / ML & Predictive Analytics** | Sophisticated forecasting, probabilistic confidence bands, seasonal trend decomposition. | **Quantile Gradient Boosting (`qGBM`)** generating $p_{10}, p_{50}, p_{90}$ price bands, **Conformalized Quantile Regression (CQR)** calibration, and automated walk-forward model selection per horizon. |
 | **Supply Chain & Optimization** | Multi-echelon logistics, landed cost arbitrage, inventory balancing, lead-time resilience. | **Mixed-Integer Linear Programming (PuLP/CBC)** solving integer lot sizes ($25\text{t}, 500\text{t}$) subject to silo capacity ($4,500\text{t}$), safety stock ($1,200\text{t}$), and asymmetric lead times ($7\text{d vs } 35\text{d}$). |
 | **Correctness & Zero Hallucination** | Provable calculations, auditability, no fake data, reproducible results. | Every displayed figure is backed by a database `run_id`. Zero LLM hallucinations in procurement decisions—all explanations generated via strict deterministic rule templates. |
-| **UI / UX Excellence** | Executive clarity, accessibility, responsive design, intuitive decision-making. | Flat, high-contrast design system checked against **WCAG AA** standards ($13.4:1$ text contrast), tabular numerals, table view toggles on all charts, and live What-If sliders. |
-| **Commercial Impact & Real-World Value** | Tangible cost reduction, risk mitigation, operational feasibility for ABT-CPD. | **4.18% proven cost reduction** (~₹3.78 Cr on 18,200 tonnes crush requirement) validated via 52-week walk-forward historical backtesting against standard industry reorder rules. |
+| **UI / UX Excellence** | Executive clarity, accessibility, responsive design, intuitive decision-making. | Flat high-contrast design system; primary and secondary text exceed WCAG AA ($15.49:1$ ink on white, $14.06:1$ on paper), while `--muted` and `--amber` fall short and are documented as a known limitation. Tabular numerals, table view toggles, and live What-If sliders. |
+| **Commercial Impact & Real-World Value** | Tangible cost reduction, risk mitigation, operational feasibility for ABT-CPD. | A real walk-forward replay over 182 weeks of Agmarknet prices with bootstrap intervals, reported honestly in README "Validation" — including the finding that lower total spend came with a slightly higher cost per tonne. |

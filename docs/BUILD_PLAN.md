@@ -1,4 +1,6 @@
 # SoyBuy — Clean Build Plan (Rebuild From Scratch)
+
+> **Provenance note:** this plan references `SoyBuy_Master_Spec.md` and `SoyBuy_Master_Build_Prompt.md`, neither of which is present in this repository. Where these plans disagree with the shipped code, migrations and tests, the code wins.
 ### Verified data sources, final stack, exact scaffold, design system, build order, and a hackathon-winning checklist
 
 | Field | Value |

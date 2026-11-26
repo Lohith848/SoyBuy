@@ -1,10 +1,16 @@
-import urllib.request, json, ssl, time
+import urllib.request, json, ssl, time, os
 from collections import Counter
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
-K = "YOUR_DATA_GOV_IN_KEY_HERE"
+
+# Never hard-code credentials. Export the key locally instead:
+#   macOS/Linux: export DATA_GOV_IN_API_KEY=...
+#   Windows:     setx DATA_GOV_IN_API_KEY "..."
+K = os.environ.get("DATA_GOV_IN_API_KEY", "")
+if not K:
+    raise SystemExit("DATA_GOV_IN_API_KEY is not set in the environment.")
 
 
 def get(url):

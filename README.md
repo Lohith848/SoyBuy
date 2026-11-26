@@ -1,69 +1,63 @@
 # SoyBuy — Data-Driven Dynamic Soybean Procurement Strategy
 
-> **Enterprise Decision Support System for Commercial Soybean Crushing Operations**  
+> **Decision Support System for Commercial Soybean Crushing Operations**  
 > **Problem Statement:** PS-035 | **Theme:** THEME-04 (AI/ML & Predictive Decision Support)  
 > **Target Enterprise:** ABT-CPD (Agri-Business Trading - Crush Plant Division)  
-> **Status:** Production-Ready Monorepo | **License:** MIT
+> **Status:** Hackathon prototype (not production-deployed) | **License:** MIT
 
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014%20(App%20Router)-black?logo=next.js&logoColor=white)](https://nextjs.org/)
-[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?logo=python&logoColor=white)](https://python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![PuLP CBC](https://img.shields.io/badge/Solver-PuLP%20%2F%20COIN--OR%20CBC-blue)](https://coin-or.github.io/Cbc/)
-[![WCAG AA](https://img.shields.io/badge/UI%2FUX-WCAG%20AA%20Compliant-success)](#)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.143-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014.2%20(App%20Router)-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](https://python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![PuLP CBC](https://img.shields.io/badge/Solver-PuLP%202.9%20%2F%20COIN--OR%20CBC-blue)](https://coin-or.github.io/Cbc/)
 
 ---
 
 ## Table of Contents
-- [Executive Overview](#-executive-overview)
-- [Key Features](#-key-features)
-- [System Architecture](#-system-architecture)
-- [Tech Stack](#-tech-stack)
-- [Repository Structure](#-repository-structure)
-- [Documentation Map](#-documentation-map)
-- [Prerequisites & Installation](#-prerequisites--installation)
-- [Environment Variables](#-environment-variables)
-- [Supabase Setup & Migrations](#-supabase-setup--migrations)
-- [Running Locally](#-running-locally)
-- [Verification & Automated Tests](#-verification--automated-tests)
-- [Deployment Guidelines](#-deployment-guidelines)
-- [Zero-Hallucination Compliance](#-zero-hallucination-compliance)
-- [Contributing & License](#-contributing--license)
+- [Executive Overview](#executive-overview)
+- [Key Features](#key-features)
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Repository Structure](#repository-structure)
+- [Documentation Map](#documentation-map)
+- [Prerequisites & Installation](#prerequisites--installation)
+- [Environment Variables](#environment-variables)
+- [Database Setup & Migrations](#database-setup--migrations)
+- [Running Locally](#running-locally)
+- [Verification & Automated Tests](#verification--automated-tests)
+- [Validation](#validation)
+- [Deployment Guidelines](#deployment-guidelines)
+- [Zero-Hallucination Compliance](#zero-hallucination-compliance)
+- [Known Limitations](#known-limitations)
+- [License](#license)
 
 ---
 
 ## Executive Overview
 
-Soybean is the primary raw material for **ABT-CPD**'s commercial solvent extraction plant (crushing 250 tonnes/day $\approx$ 1,750 tonnes/week). Soybean market prices fluctuate wildly due to monsoon variability, seasonal kharif harvest arrivals, and global macroeconomic trade shifts. 
+Soybean is the primary raw material for **ABT-CPD**'s commercial solvent extraction plant. The shipped default is **350 t/week** (`SettingsModel.weekly_consumption_t`), and every number in this README is computed with it. A 250 t/day plant would be ≈1,750 t/week, so raise that setting before treating any output as a real plant's plan. Prices move with monsoon variability, kharif harvest arrivals, and global trade. Crush plant procurement faces three coupled problems:
 
-Crush plant procurement faces a multi-faceted challenge:
-1. **Timing:** Avoiding peak lean-season price premiums (June–August) and accumulating stock during post-harvest arrival discounts (October–December).
-2. **Sourcing Arbitrage:** Dynamically comparing domestic spot mandis (Indore, Latur, Akola) with international ocean imports (CIF Nhava Sheva from US/Brazil) on a true delivered mill landed cost parity basis.
-3. **Operational Constraints:** Managing vertical steel silo capacity (4,500 tonnes), safety buffer floors (1,200 tonnes), discrete integer ordering lots (25 t truckloads vs 500 t container clusters), and multi-echelon lead times (7 days domestic vs 35 days ocean import).
+1. **Timing:** avoiding lean-season premiums (June–August) while accumulating stock during post-harvest arrival discounts (October–December).
+2. **Sourcing arbitrage:** comparing domestic mandi spot (Indore, Latur, Akola) with ocean imports (CIF Nhava Sheva) on a delivered-mill landed-cost basis.
+3. **Operational constraints:** silo capacity, safety-stock floors, discrete order lots (25 t truckloads vs 500 t container clusters), and asymmetric lead times (days domestic vs weeks ocean).
 
-### Proven Quantitative Impact
-* **4.18% Direct Procurement Cost Reduction** (~**₹3.78 Crore saved** per 18,200 tonnes crushed).
-* **0 Stockout Days** and **100% Factory Continuity** maintained across 52 simulated weeks.
-* **82.5% Empirical Coverage** on 12-week probabilistic price forecast bands using Conformalized Quantile Regression (CQR).
-* **Sub-200ms API Latency** and zero-hallucination deterministic explainability.
+SoyBuy ingests four public price series, forecasts 12 weeks ahead with quantile bands, computes both landed costs, solves a mixed-integer purchase schedule, and presents a recommendation with deterministic, fact-linked explanations and an auditable approve/modify/reject trail.
+
+**This repository does not claim a proven cost saving.** The one backtest that could be run in the current environment, and its unflattering details, are reported in [Validation](#validation).
 
 ---
 
 ## Key Features
 
-- **Multi-Feed Ingestion Engine:** Automated ingestion from four verified market feeds:
-  - Domestic Mandi Spot (Agmarknet / CEDA Agri-Market API).
-  - CBOT Continuous Front-Month Futures (`ZS=F` via Yahoo Finance).
-  - Currency Exchange Rate (USD/INR ECB reference rate via keyless Frankfurter API).
-  - World Bank Pink Sheet Monthly Benchmark.
-- **12-Week Quantile Price Forecasting:** Multi-horizon probabilistic forecasting ($p_{10}, p_{50}, p_{90}$) utilizing Quantile Gradient Boosting (`HistGradientBoostingRegressor(loss='quantile')`), Holt-Winters ETS, and rolling walk-forward Pinball Loss model selection with Conformalized Quantile Regression (CQR) calibration.
-- **Formulaic Landed Cost Parity:** Granular comparison between domestic road haulage (base price + 1.5% APMC fee + 1.0% commission + freight + handling + shrinkage) and international CIF ocean shipping (CBOT + ocean freight + marine insurance + 5.0% AIDC cess + port handling + rail haulage + financing carry cost).
-- **Mixed-Integer Linear Programming (MILP) Optimizer:** Solves discrete weekly lot ordering over a 12-week rolling horizon using the PuLP/CBC C++ solver, enforcing inventory mass balance, safety buffers, silo capacity ceilings, and multi-echelon lead-time pipelines.
-- **Interactive What-If Scenario Sandbox:** Real-time sliders allowing buyers to stress-test plans against mandi price surges, CBOT swings, USD/INR depreciation, transit delays, and demand spikes with sub-second re-optimization.
-- **Zero-Hallucination Explanations:** Fact-grounded rule template engine linking every recommendation bullet point directly to mathematical facts and database run IDs without ungrounded LLM inference.
-- **Human-in-the-Loop Governance:** Dedicated executive approval portal for **Approve**, **Modify**, and **Reject** actions recorded to an append-only, cryptographically audited PostgreSQL log.
-- **Walk-Forward Historical Replay (Backtesting):** 52-week historical simulation comparing dynamic procurement against static reorder point baselines with 2,000 block-bootstrap resamples for 95% confidence intervals.
+- **Multi-feed ingestion:** domestic mandi spot (Agmarknet archive / data.gov.in), CBOT front-month futures (`ZS=F`), USD/INR (Frankfurter/ECB), and World Bank Pink Sheet monthly benchmark. Each adapter is isolated so one feed failing does not halt the others.
+- **12-week quantile forecasting:** `HistGradientBoostingRegressor(loss='quantile')`, Holt-Winters ETS, seasonal-naive and persistence candidates, selected per horizon by rolling walk-forward pinball loss, with conformal (CQR) band calibration.
+- **Formulaic landed cost parity:** domestic (base + APMC fee + commission + freight + handling + shrinkage) vs import (CIF + duty/AIDC + port + inland haulage + financing carry + risk buffer), with a component breakdown for every week.
+- **MILP optimizer:** PuLP/CBC integer-lot scheduling over a 12-week horizon with inventory mass balance, safety stock, silo capacity, lead-time pipelines, and shortage penalties.
+- **What-if sandbox:** price, FX, lead-time, and demand shocks re-run the real optimizer; results come back from the API, not from client-side arithmetic.
+- **Deterministic explanations:** recommendation bullets are generated by rule templates bound to computed facts and run IDs — no generative LLM text.
+- **Human-in-the-loop governance:** approve / modify / reject actions are written to an append-only audit trail.
+- **Walk-forward replay:** compares the MILP policy against a static reorder-point rule, buy-as-needed, and a perfect-foresight oracle, with a bootstrap confidence interval over per-window savings.
 
 ---
 
@@ -71,9 +65,9 @@ Crush plant procurement faces a multi-faceted challenge:
 
 ```mermaid
 graph TB
-    subgraph DataFeeds [Verified Market Data Feeds]
+    subgraph DataFeeds [Public Market Data Feeds]
         CBOT[CBOT Futures ZS=F<br/>Yahoo Finance]
-        Mandi[Agmarknet / CEDA<br/>Spot Mandis]
+        Mandi[Agmarknet archive<br/>data.gov.in]
         FX[Frankfurter API<br/>ECB USD/INR]
         WB[World Bank<br/>Pink Sheet]
     end
@@ -81,23 +75,22 @@ graph TB
     subgraph DataLayer [Ingestion & Storage]
         Adapters[Source Adapters]
         Quality[Anomaly & Spike Rules]
-        DB[(Supabase PostgreSQL 15<br/>RLS & Append-Only Triggers)]
+        DB[(Supabase PostgreSQL<br/>RLS & Append-Only Triggers)]
     end
 
     subgraph MLCore [Algorithmic & ML Core]
         FC[Quantile GBM Forecaster<br/>p10 / p50 / p90 Bands]
         LC[Landed Cost Parity Engine<br/>Domestic vs CIF Nhava Sheva]
         OPT[PuLP / CBC MILP Optimizer<br/>Integer Lots & Silo Bounds]
-        EXP[Zero-Hallucination Explainer]
+        EXP[Deterministic Explainer]
     end
 
     subgraph API [FastAPI Backend - Port 8000]
-        Router[14 REST Controllers<br/>Pydantic v2 & CORS]
+        Router[14 REST route modules<br/>Pydantic v2 & CORS]
     end
 
-    subgraph Web [Next.js 14 Dashboard - Port 3000]
-        Shell[High-Contrast Desk UI<br/>WCAG AA & Tabular Numerals]
-        Pages[Dashboard · Analysis · Scenarios · Decisions · Data · Settings · Backtest]
+    subgraph Web [Next.js 14 Frontend - Port 3000]
+        Shell[Single-page desk shell<br/>7 tab views + modals]
     end
 
     CBOT --> Adapters
@@ -117,129 +110,165 @@ graph TB
 
     DB --> Router
     Router --> Shell
-    Shell --> Pages
 ```
+
+The frontend is **one page with seven tab views** (Dashboard, Analysis, Scenarios, Decisions, Data, Settings, Backtest), not seven routed pages. This is deliberate: the tabs share one synchronized data load and one modal layer. `npm run build` confirms it — the build emits only `/` and `/_not-found`.
 
 ---
 
 ## Tech Stack
 
-| Domain | Technology | Description |
+Versions below are the ones actually installed in `apps/api/.venv` and `apps/web/node_modules` at the time of writing.
+
+| Domain | Technology | Version | Notes |
+|---|---|---|---|
+| **Backend** | FastAPI | 0.143.0 | Pydantic 2.14.1 schemas, OpenAPI at `/api/docs` |
+| **Runtime** | Python (CPython) | 3.10.11 | |
+| **Solver** | PuLP + COIN-OR CBC | 2.9.0 | MILP with integer lot variables |
+| **ML** | scikit-learn | 1.7.2 | `HistGradientBoostingRegressor(loss='quantile')` |
+| **Time series** | statsmodels | 0.15.0 | Holt-Winters ETS |
+| **Data** | pandas / SQLAlchemy | 2.3.3 / 2.0.54 | |
+| **Frontend** | Next.js (App Router) | 14.2.35 | React 18.3.1, TypeScript ^5.7.2 |
+| **Styling** | Tailwind CSS | ^3.4.17 | Design tokens in `globals.css` |
+| **Database** | Supabase PostgreSQL | — | RLS and append-only triggers in migrations |
+
+### Accessibility (measured, not asserted)
+
+Contrast ratios computed from the tokens in `apps/web/src/app/globals.css` using the WCAG relative-luminance formula:
+
+| Text / background | Ratio | WCAG AA (4.5:1 body text) |
 |---|---|---|
-| **Frontend** | Next.js 14 (App Router) | React 18, Strict TypeScript, Tailwind CSS, Lucide Icons |
-| **Design System** | Flat High-Contrast Tokens | WCAG AA compliant ($13.4:1$ text contrast), zero-blur, tabular figures (`font-variant-numeric: tabular-nums`) |
-| **Backend API** | FastAPI (Python 3.10+) | Asynchronous REST API, auto-generated OpenAPI 3.1 docs, Pydantic v2 schemas |
-| **Mathematical Solver** | PuLP + COIN-OR CBC | Mixed-Integer Linear Programming (MILP) solver |
-| **Machine Learning** | Scikit-Learn | `HistGradientBoostingRegressor(loss='quantile')` with CQR calibration |
-| **Time-Series Analysis** | Statsmodels | Holt-Winters Exponential Smoothing (ETS) & seasonal decomposition |
-| **Data Processing** | Pandas & NumPy | Vectorized agricultural transformations and time-series aggregation |
-| **Database** | Supabase PostgreSQL 15 | Row-Level Security (RLS), versioned SQL migrations, append-only triggers |
+| `--ink` `#20251d` on `--white` `#fffefa` | 15.49:1 | Pass |
+| `--ink` `#20251d` on `--paper` `#f4f3ed` | 14.06:1 | Pass |
+| `--ink-secondary` `#4a5146` on `--white` | 8.14:1 | Pass |
+| `--green` `#4f6b3e` on `--paper` | 5.39:1 | Pass |
+| `--blue` `#3b6082` on `--paper` | 5.94:1 | Pass |
+| `--red` `#a54c39` on `--paper` | 5.12:1 | Pass |
+| `--amber` `#9a6b1e` on `--paper` | 4.20:1 | **Fail** |
+| `--muted` `#7b8176` on `--paper` | 3.60:1 | **Fail** |
+
+The UI is therefore **not** fully WCAG AA: `--muted` and `--amber` fall short for body-size text. Primary and secondary text pass comfortably.
 
 ---
 
 ## Repository Structure
 
 ```
-SoyBean/
+SoyBuy/
 ├── apps/
-│   ├── api/                             # FastAPI Backend Service
+│   ├── api/                             # FastAPI backend
 │   │   ├── app/
-│   │   │   ├── db.py                    # Supabase PostgreSQL pool
-│   │   │   ├── main.py                  # Application entry point & middleware
-│   │   │   ├── jobs/                    # Data ingestion & replay runners
-│   │   │   ├── repositories/            # SQL query layers (decisions, settings, prices)
-│   │   │   ├── routers/                 # REST endpoints (14 controllers)
-│   │   │   ├── schemas/                 # Pydantic v2 request/response models
-│   │   │   └── services/                # Pure mathematical algorithms
-│   │   │       ├── adapters/            # External market feed parsers
-│   │   │       ├── backtest.py          # 52-week walk-forward replay engine
-│   │   │       ├── data_store.py        # Pipeline coordinator & state store
-│   │   │       ├── explain.py           # Template-based explanation engine
-│   │   │       ├── forecast.py          # Quantile GBM & CQR calibration
-│   │   │       ├── landed_cost.py       # Landed cost parity calculator
-│   │   │       ├── optimizer.py         # PuLP/CBC MILP buy-plan solver
-│   │   │       └── units.py             # Agricultural unit conversions
-│   │   ├── tests/                       # Golden tests (GT-*) & property tests (PT-*)
-│   │   └── requirements.txt             # Python dependencies
-│   └── web/                             # Next.js 14 Frontend Application
+│   │   │   ├── db.py                    # SQLAlchemy engine / connection helper
+│   │   │   ├── main.py                  # App entry, CORS, error handling, /features
+│   │   │   ├── jobs/                    # import_snapshot, compute_weekly, backtest_replay
+│   │   │   ├── repositories/            # SQL layers (prices, plans, decisions, settings…)
+│   │   │   ├── routers/                 # 14 route modules
+│   │   │   ├── schemas/models.py        # Pydantic v2 models
+│   │   │   └── services/
+│   │   │       ├── adapters/            # Agmarknet archive, CBOT, FX, World Bank
+│   │   │       ├── backtest.py          # Walk-forward replay + bootstrap CI
+│   │   │       ├── blocked.py           # Structured "cannot compute" errors
+│   │   │       ├── capabilities.py      # /features truth source
+│   │   │       ├── data_store.py        # Pipeline coordinator
+│   │   │       ├── explain.py           # Template explanation engine
+│   │   │       ├── forecast.py          # Quantile models + CQR
+│   │   │       ├── landed_cost.py       # Landed cost calculator
+│   │   │       ├── optimizer.py         # PuLP/CBC MILP
+│   │   │       └── units.py             # Unit conversions
+│   │   ├── tests/
+│   │   │   ├── golden/test_golden.py    # GT-* golden + LC property tests
+│   │   │   ├── property/test_properties.py
+│   │   │   └── test_cross_screen.py     # Needs a live database
+│   │   └── requirements.txt
+│   └── web/                             # Next.js 14 frontend
 │       ├── src/
-│       │   ├── app/
-│       │   │   ├── globals.css          # Design tokens & flat UI stylesheet
-│       │   │   ├── layout.tsx           # Shell layout with theme metadata
-│       │   │   └── page.tsx             # 7 interactive desk screens & modals
-│       │   └── lib/
-│       │       ├── format.ts            # Indian currency & agricultural unit formatters
-│       │       └── types.ts             # TypeScript interface contracts
-│       ├── public/
-│       │   └── soybuy-mark.svg          # Brand mark logo
-│       ├── next.config.js               # API proxy rewrite configuration
-│       ├── tailwind.config.js           # Tailwind theme tokens
+│       │   ├── app/                     # layout.tsx, globals.css, page.tsx (single page)
+│       │   ├── components/              # 7 tab views, modals, settings sections, ui/
+│       │   └── lib/                     # api.ts, useDomainData.ts, types.ts, format.ts
+│       ├── next.config.js               # API proxy rewrite
+│       ├── tailwind.config.js
 │       └── package.json
 ├── data/
-│   └── seed/raw/                        # Historical Agmarknet soybean CSV records
-├── docs/                                # Project Documentation Repository
-│   ├── SPECIFICATION.md                 # Complete Master Production Spec (PRD, TRD, DDL)
-│   ├── ARCHITECTURE.md                  # Detailed Codebase Architecture Guide
-│   ├── BUILD_PLAN.md                    # Day-by-day clean rebuild blueprint
-│   ├── BUILD_RULES.md                   # Agent operating rules & zero-hallucination protocols
-│   ├── data-sources.md                  # Confirmed data feeds and endpoints
-│   ├── AUDIT.md                         # Audit logging & governance notes
-│   └── legacy/                          # Preserved historical reference specs
-├── scripts/                             # Verification, migration & maintenance scripts
-│   ├── check_tables.py                  # Database table & column verifier
-│   ├── migrate.py                       # Supabase migration runner
-│   └── test_pipeline.py                 # End-to-end mathematical pipeline test
+│   └── seed/raw/                        # Agmarknet CSVs, 2014–2017 (174,852 canonical daily rows)
+├── docs/                                # SPECIFICATION, ARCHITECTURE, BUILD_PLAN, …
+├── scripts/
+│   ├── backtest_seed.py                 # Reproduces the README Validation figures
+│   ├── check-no-literals.mjs            # Fails on hard-coded business numbers in web/src
+│   ├── check_tables.py                  # Prints live table columns
+│   ├── migrate.py                       # Idempotent migration runner
+│   ├── no_fake_data.py                  # Anti-fake-data / banned-style linter
+│   └── test_pipeline.py                 # End-to-end pipeline smoke test (needs DB)
 ├── supabase/
-│   └── migrations/                      # 7 Versioned SQL Migrations (0000 - 0006)
-├── .env.example                         # Safe configuration template
-├── .gitignore                           # Git ignore rules (protects .env & secrets)
-└── README.md                            # This GitHub master guide
+│   └── migrations/                      # 8 SQL files, 0000–0007
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
 ---
 
 ## Documentation Map
 
-All project documentation is organized in [`docs/`](docs/):
-
 | File | Content Summary |
 |---|---|
-| [docs/SPECIFICATION.md](docs/SPECIFICATION.md) | **Authoritative Master Production Specification:** Full PRD, TRD, mathematical formulas, DDL, API contracts, and UI/UX blueprint. |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Codebase Architecture Guide:** Component-by-component execution flows, data structures, and algorithms. |
-| [docs/data-sources.md](docs/data-sources.md) | **Data Feeds Register:** Live endpoints, update intervals, units, and API credentials for Agmarknet, CBOT, and ECB. |
-| [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) | **Clean Build Plan:** Step-by-step phased execution sequence. |
-| [docs/BUILD_RULES.md](docs/BUILD_RULES.md) | **Zero-Hallucination Protocol:** Quality checks, audit hashes, and claim rules. |
-| [docs/AUDIT.md](docs/AUDIT.md) | **Governance & Compliance:** Append-only database triggers and buyer approval trails. |
+| [docs/SPECIFICATION.md](docs/SPECIFICATION.md) | Master specification: PRD, TRD, formulas, DDL, API contracts, UI blueprint |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component-by-component execution flows and algorithms |
+| [docs/data-sources.md](docs/data-sources.md) | Feed register: endpoints, intervals, units, credentials |
+| [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) | Phased build sequence |
+| [docs/BUILD_RULES.md](docs/BUILD_RULES.md) | Zero-hallucination operating rules and claim discipline |
+| [docs/AUDIT.md](docs/AUDIT.md) | Governance notes and the original defect register |
 
 ---
 
 ## Prerequisites & Installation
 
-### Prerequisites
-- **Python:** 3.10.x or 3.11.x
-- **Node.js:** 18.x or 20.x (with `npm` or `pnpm`)
-- **Package Managers:** `uv` (recommended for Python) and `npm`
+- **Python:** 3.10.x (this repo was verified on 3.10.11)
+- **Node.js:** 18.x or 20.x with `npm`
+- **Optional:** `uv` for faster Python dependency installs
 
-### 1. Clone Repository
+### 1. Clone
+
 ```bash
 git clone https://github.com/Lohith848/SoyBuy.git
 cd SoyBuy
 ```
 
-### 2. Set Up Python Virtual Environment (Backend)
+### 2. Python virtual environment (backend)
+
+**macOS / Linux**
 ```bash
 cd apps/api
-# Using uv (fastest)
-uv venv .venv --python 3.10
-uv pip install -r requirements.txt --python .venv/Scripts/python.exe
-
-# Or using standard python venv:
-# python -m venv .venv
-# source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-# pip install -r requirements.txt
+python3.10 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements.txt
 ```
 
-### 3. Set Up Node Dependencies (Frontend)
+**Windows (PowerShell or CMD)**
+```powershell
+cd apps/api
+py -3.10 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+With `uv` instead of `pip`:
+
+**macOS / Linux**
+```bash
+cd apps/api
+uv venv .venv --python 3.10
+uv pip install -r requirements.txt --python .venv/bin/python
+```
+
+**Windows**
+```powershell
+cd apps/api
+uv venv .venv --python 3.10
+uv pip install -r requirements.txt --python .venv\Scripts\python.exe
+```
+
+### 3. Node dependencies (frontend)
+
 ```bash
 cd ../web
 npm install
@@ -249,138 +278,382 @@ npm install
 
 ## Environment Variables
 
-Create a `.env` file in the repository root by copying the template:
+Create a local `.env` from the template. Both commands do the same thing:
+
+**macOS / Linux**
 ```bash
 cp .env.example .env
 ```
 
-Configure the following variables in `.env`:
+**Windows (PowerShell)**
+```powershell
+Copy-Item .env.example .env
+```
+
+Fill in the values. Never commit `.env`; it is git-ignored, as are `.env*.local` files.
+
 ```ini
-# API Configuration
+# API
 PORT=8000
 LOG_LEVEL=INFO
 ALLOWED_ORIGINS=http://localhost:3000
 
-# Supabase PostgreSQL Database (Connection Pooler URL)
-DATABASE_URL=postgresql://postgres.[project]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+# Supabase PostgreSQL (connection pooler URL)
+DATABASE_URL=postgresql://postgres.[project-ref]:YOUR_DB_PASSWORD@aws-0-[region].pooler.supabase.com:5432/postgres
 
-# Supabase Auth & Storage Keys
-SUPABASE_URL=https://[project].supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUz...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUz...
+# Supabase keys — copy from your own project settings
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY_HERE
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
 
-# Frontend Public Environment Variables
+# Frontend (public)
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY_HERE
 
-# External Data Feeds (Agmarknet)
-DATA_GOV_IN_API_KEY=YOUR_DATA_GOV_IN_KEY_HERE...
+# data.gov.in API key for live Agmarknet ingestion
+DATA_GOV_IN_API_KEY=YOUR_DATA_GOV_IN_KEY_HERE
 ```
 
-> **Security Notice:** The `.env` file contains sensitive credentials and is strictly excluded via `.gitignore`. Never commit `.env` or private keys to source control.
+> **Credential hygiene:** every credential above is a placeholder. If you have an older clone of this repository, treat any `DATA_GOV_IN_API_KEY` that appeared in it as compromised and rotate it at data.gov.in. Keys must never be hard-coded in scripts — `scripts/_probe_agmarknet.py` reads the key from the environment.
 
 ---
 
-## Supabase Setup & Migrations
+## Database Setup & Migrations
 
-The database uses 7 versioned SQL migration scripts located in [`supabase/migrations/`](supabase/migrations/):
+> **Supabase is optional, and the project this repository's `.env` pointed at no
+> longer exists** — the pooler answers `FATAL: (ENOTFOUND) tenant/user
+> postgres.<ref> not found` and the project host does not respond. Any PostgreSQL
+> 13+ instance works, including the bundled `uv pip install pgserver` binary used
+> for the 2026-11-26 validation (PostgreSQL 16.2).
 
-- `0000_teardown.sql`: Clean drop of old tables/types while preserving migration history.
-- `0001_schema.sql`: Complete DDL creating 24 tables, check constraints, enum types, and views.
-- `0002_access.sql`: Configures the `soybuy_api` role and applies Row-Level Security (RLS).
-- `0003_seed_catalog.sql`: Seeds reference series catalog rows.
-- `0004_truth_and_wiring.sql`: Adds progress reporting, counterfactuals, and forecast outcome views.
-- `0005_series_catalog_verified.sql`: Updates series catalog with verified endpoints.
-- `0006_saved_scenarios.sql`: Adds persistent table for What-If scenario configurations.
+The migrations assume three roles and one schema that Supabase normally provides.
+Create them once on a plain PostgreSQL server:
 
-### Apply Database Migrations
-Run the idempotent Python migration runner:
-```bash
-# From repository root
-apps/api/.venv/Scripts/python.exe scripts/migrate.py
+```sql
+create role anon nologin;
+create role authenticated nologin;
+create role soybuy_api nologin;
+create schema auth;
+create table auth.users (id uuid primary key, email text);
 ```
 
-### Verify Table Schema
+Then set `DATABASE_URL` to that server before running anything below.
+
+Eight versioned SQL files live in [`supabase/migrations/`](supabase/migrations/). Together they define **27 distinct tables**; `0001_schema.sql` alone creates **24**.
+
+| File | Purpose |
+|---|---|
+| `0000_teardown.sql` | Drops legacy objects while preserving migration history |
+| `0001_schema.sql` | Core DDL: 24 tables, constraints, enums, views |
+| `0002_access.sql` | `soybuy_api` role and Row-Level Security |
+| `0003_seed_catalog.sql` | Reference series catalog rows |
+| `0004_truth_and_wiring.sql` | Progress reporting, counterfactuals, forecast outcome views |
+| `0005_series_catalog_verified.sql` | Verified endpoints in the series catalog |
+| `0006_saved_scenarios.sql` | Persistent what-if scenario configurations |
+| `0007_upload_kinds.sql` | Upload kind metadata |
+
+### Apply migrations
+
+**macOS / Linux**
 ```bash
-apps/api/.venv/Scripts/python.exe scripts/check_tables.py
+apps/api/.venv/bin/python scripts/migrate.py
+```
+
+**Windows**
+```powershell
+apps/api\.venv\Scripts\python.exe scripts\migrate.py
+```
+
+### Inspect the live schema
+
+**macOS / Linux**
+```bash
+apps/api/.venv/bin/python scripts/check_tables.py
+```
+
+**Windows**
+```powershell
+apps/api\.venv\Scripts\python.exe scripts\check_tables.py
 ```
 
 ---
 
 ## Running Locally
 
-### 1. Launch FastAPI Backend Service
+### 1. Backend API
+
+**macOS / Linux**
 ```bash
 cd apps/api
-.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-- **API Base:** `http://127.0.0.1:8000`
-- **Interactive Swagger Docs:** `http://127.0.0.1:8000/api/docs`
-- **Liveness Probe:** `http://127.0.0.1:8000/health`
 
-### 2. Launch Next.js Frontend Dashboard
+**Windows**
+```powershell
+cd apps/api
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+- API base: `http://127.0.0.1:8000`
+- Swagger UI: `http://127.0.0.1:8000/api/docs`
+- Liveness: `http://127.0.0.1:8000/health`
+- Capability report: `http://127.0.0.1:8000/api/v1/features`
+
+### 2. Frontend
+
 ```bash
 cd apps/web
 npm run dev
 ```
-- **Web Dashboard:** `http://localhost:3000`
+
+Open `http://localhost:3000`. The Next.js config proxies `/api/v1/*` to the backend.
+
+### 3. Load the real data
+
+With the database from [Database Setup & Migrations](#database-setup--migrations)
+reachable, load the shipped Agmarknet archive plus the CBOT/FX snapshots and build
+the weekly series:
+
+**macOS / Linux**
+```bash
+apps/api/.venv/bin/python -c "
+import sys; sys.path.insert(0, 'apps/api')
+from app.jobs.import_snapshot import import_cbot_futures, import_usd_inr, import_domestic_archive, rebuild_domestic_benchmark
+from app.jobs.compute_weekly import compute_weekly_prices
+import_cbot_futures('apps/api/soybean_futures.csv')
+import_usd_inr('apps/api/usd_inr.csv')
+import_domestic_archive(); rebuild_domestic_benchmark()
+print(compute_weekly_prices())"
+```
+
+**Windows**
+```powershell
+apps/api\.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'apps/api'); from app.jobs.import_snapshot import import_cbot_futures, import_usd_inr, import_domestic_archive, rebuild_domestic_benchmark; from app.jobs.compute_weekly import compute_weekly_prices; import_cbot_futures('apps/api/soybean_futures.csv'); import_usd_inr('apps/api/usd_inr.csv'); import_domestic_archive(); rebuild_domestic_benchmark(); print(compute_weekly_prices())"
+```
+
+Expected shape (from the 2026-11-26 run): 174,852 archive rows, 2,959 CBOT rows,
+3,065 FX rows, 1,268 derived benchmark rows, 1,594 weekly rows — leaving 182 weekly
+points for `DOM_SOY_BENCH`.
 
 ---
 
 ## Verification & Automated Tests
 
-### 1. Run Golden Tests & Property Tests
-The test suite validates unit conversions, formulaic landed cost calculations, PuLP/CBC optimization, quantile monotonicity, and cross-screen consistency:
+### 1. Test suite
+
+**macOS / Linux**
 ```bash
 cd apps/api
-.venv/Scripts/python.exe -m pytest tests/ -v
+.venv/bin/python -m pytest tests/ -v
 ```
-**Results:** All 14 tests pass (`14 passed in 0.20s`):
-- `test_gt_unit_01` (INR/quintal $\rightarrow$ INR/t) — PASSED
-- `test_gt_unit_02` (cents/bu $\rightarrow$ USD/t) — PASSED
-- `test_gt_lc_01` (Domestic landed cost parity) — PASSED
-- `test_gt_lc_02` (Import CIF landed cost parity) — PASSED
-- `test_gt_opt_01` (PuLP/CBC MILP buy-plan solver) — PASSED
-- `test_pt_lc_01_domestic_components_sum` — PASSED
-- `test_pt_lc_01_import_components_sum` — PASSED
-- `test_pt_fct_01_quantile_monotonicity` — PASSED
-- `test_pt_bt_01_replay_zero_leakage` — PASSED
-- `test_route_gap_identical_across_screens` — PASSED
 
-### 2. Run End-to-End Pipeline Verification
-```bash
-# From repository root
-apps/api/.venv/Scripts/python.exe scripts/test_pipeline.py
+**Windows**
+```powershell
+cd apps/api
+.venv\Scripts\python.exe -m pytest tests/ -v
 ```
-Validates real price fetching, forecast generation, landed cost parity, MILP optimization, and explainability on real database records.
 
-### 3. Verify Next.js Production Build
+Measured on **2026-11-26** (pytest prints elapsed time itself; it varies per machine and
+run, so no timing is quoted here):
+
+```
+# with a reachable database
+14 passed
+
+# without a database (what a fresh clone sees)
+12 passed, 2 skipped
+```
+
+The two cross-screen consistency tests skip themselves when `DATABASE_URL` is unset.
+They were run for real against the local PostgreSQL described in
+[Validation](#validation) and both passed.
+
+| Test | Status | Covers |
+|---|---|---|
+| `test_gt_unit_01` | PASSED | INR/quintal → INR/t |
+| `test_gt_unit_02` | PASSED | US cents/bushel → USD/t |
+| `test_gt_lc_01` | PASSED | Domestic landed cost golden value |
+| `test_gt_lc_02` | PASSED | Import CIF landed cost golden value |
+| `test_gt_opt_01` | PASSED | PuLP/CBC MILP schedule |
+| `test_pt_lc_01_domestic_components_sum` | PASSED | Domestic total = sum of components |
+| `test_pt_lc_01_import_components_sum` | PASSED | Import total = sum of components |
+| `test_pt_lc_02_domestic_cost_increases_with_price` | PASSED | Monotonicity in domestic price |
+| `test_pt_lc_02_import_cost_increases_with_int_price` | PASSED | Monotonicity in international price |
+| `test_pt_fct_01_quantile_monotonicity` | PASSED | p10 ≤ p50 ≤ p90 |
+| `test_pt_fct_02_zero_lookahead_leakage` | PASSED | No future data in forecast features |
+| `test_pt_bt_01_replay_zero_leakage` | PASSED | Replay uses only known prices |
+| `test_route_gap_identical_across_screens` | PASSED | Route gap identical across screens (ran live) |
+| `test_domestic_and_import_totals_share_one_source` | PASSED | Domestic + import totals share one source (ran live) |
+
+### 2. Frontend production build
+
+**macOS / Linux and Windows** (identical command)
 ```bash
 cd apps/web
 npm run build
 ```
-Ensures 100% strict TypeScript compliance, zero lint errors, and optimal static page generation.
+
+Verified: Next.js 14.2.35 compiles, type-checks, and emits two routes (`/` and `/_not-found`).
+
+### 3. Guard scripts
+
+**macOS / Linux**
+```bash
+apps/api/.venv/bin/python scripts/no_fake_data.py
+node scripts/check-no-literals.mjs
+```
+
+**Windows**
+```powershell
+apps/api\.venv\Scripts\python.exe scripts\no_fake_data.py
+node scripts\check-no-literals.mjs
+```
+
+### 4. End-to-end pipeline smoke test (requires a working database)
+
+**macOS / Linux**
+```bash
+apps/api/.venv/bin/python scripts/test_pipeline.py
+```
+
+**Windows**
+```powershell
+apps/api\.venv\Scripts\python.exe scripts\test_pipeline.py
+```
+
+### 5. Live stack verification (run on 2026-11-26)
+
+Backend `uvicorn app.main:app` + frontend `next dev` + PostgreSQL 16.2, driven in real
+Chrome with Playwright. Every API call below was observed on the wire:
+
+| Check | Observed |
+|---|---|
+| `GET /ready` | `{"status":"ok","database":"connected","schema_version":"1"}` |
+| `GET /api/v1/features` | all 8 capabilities `true`, `forecast_weeks_available: 182`, blockers `[]` |
+| Initial page load | 10 distinct endpoints fetched, every response `200` |
+| Seven nav tabs | all render server data; 0 empty-state markers |
+| `Retrain Model` (Analysis) | `POST /forecast/runs` → `200` |
+| `Run scenario` (Scenarios) | `POST /scenarios/run` → `200`, Decisions badge incremented 1 → 2 |
+| Settings tab | `GET /settings/versions` → `200` |
+| Cross-screen equality | API week-0 domestic `29,581.90`, import `56,825.25`, gap `27,243.35` — all three present verbatim in the DOM |
+
+Defects found and fixed by this pass (each was confirmed against a live payload first):
+
+1. Forecast returned `horizons` but the UI read `points` → the Analysis table was always empty.
+2. `GET /landed-cost/compare` returns a 12-element array but the UI expected one object → the parity cards never rendered.
+3. `recommended_tonnes` was never sent → the dashboard showed `—`.
+4. The import-parity label was inverted: the API's gap is `import − domestic` (positive = costlier), so the UI said "cheaper" while the headline said "costlier".
+5. The Analysis tab hard-coded "QUANTILE GRADIENT BOOSTING" while the engine had selected `persistence`.
+6. The sidebar asserted "WCAG AA" while `--muted` (3.60:1) and `--amber` (4.20:1) fail it.
+
+---
+
+## Validation
+
+As of **2026-11-26**, backtest run `44df38a5-247a-4481-94b4-3a692b14945f`
+(stored in `backtest_runs`, served by `GET /api/v1/backtest/summary`).
+
+- **Period:** 2013-12-30 → 2017-06-19.
+- **Data:** prices are **real** Agmarknet modal mandi prices — 174,852 daily market rows from
+  `data/seed/raw/soyabean_2014..2017.csv`, aggregated to 182 weekly medians. CBOT and
+  USD/INR are real snapshot series. **Demand is not real:** it is a modelled constant
+  350 t/week and the run row records `demand_source = "synthetic"`, because no client
+  consumption history exists in this repository.
+- **Baseline(s):** static reorder-point rule (primary comparison), buy-as-needed (JIT),
+  and a perfect-foresight oracle as a theoretical upper bound. Domestic route only;
+  import parity is deliberately not replayed.
+- **Windows:** 15 non-overlapping 12-week windows.
+
+| Strategy | Total spend (INR) | Procured (t) | Avg cost (INR/t) | Stockout weeks |
+|---|---:|---:|---:|---:|
+| SoyBuy dynamic (MILP) | 1,941,271,125.00 | 58,500 | 33,184.12 | 0 |
+| Static reorder point | 2,113,329,375.00 | 63,750 | 33,150.26 | 0 |
+| Buy-as-needed | 2,088,398,375.00 | 63,000 | 33,149.18 | 0 |
+| Perfect foresight (oracle) | 1,966,965,000.00 | 63,000 | 31,221.67 | 0 |
+
+### Result
+
+Total spend is **8.1416% lower** than the reorder-point baseline, bootstrap 95% CI
+**[7.8718%, 8.4074%]** across the 15 windows.
+
+That is **not** a win on buying. SoyBuy procured **5,250 t less** (58,500 t vs 63,750 t)
+and its average cost per tonne was **₹33.86 higher** (₹33,184.12 vs ₹33,150.26). A lower
+total spend on lower tonnage is an inventory-drawdown effect, not cheaper procurement.
+On unit cost the strategy did not beat the baseline in this replay, and the oracle at
+₹31,221.67/t shows how much headroom was timing rather than sourcing.
+
+The earlier "4.18% / ₹3.78 Cr proven savings" figure has been removed: no run in this
+repository ever produced it.
+
+### How to reproduce
+
+The stored run requires a database. Without one, the same replay engine is fully
+reproducible from the shipped CSVs:
+
+```bash
+# macOS / Linux
+apps/api/.venv/bin/python scripts/backtest_seed.py
+
+# Windows
+apps/api\.venv\Scripts\python.exe scripts/backtest_seed.py
+```
+
+That script reports **8.1542%** (95% CI 7.8868%–8.4269%) rather than 8.1416%. The
+0.013 pp difference is real and comes from the aggregation path: the script takes the
+median of all raw rows per week, while the database takes the median of daily medians
+before weekly aggregation. Both figures are genuine outputs of the same engine.
+
+To regenerate the exact stored run instead, bring up PostgreSQL as described in
+[Database Setup & Migrations](#database-setup--migrations), load the data as in
+[Load the real data](#3-load-the-real-data), then:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/backtests
+curl http://127.0.0.1:8000/api/v1/backtest/summary
+```
 
 ---
 
 ## Deployment Guidelines
 
-- **Backend API:** Containerized via Docker and deployed to Render, Fly.io, or AWS ECS with Python 3.10+ and `coinor-cbc`.
-- **Frontend Dashboard:** Deployed to Vercel with environment variable `NEXT_PUBLIC_API_URL` pointing to the production API.
-- **Database:** Hosted on Supabase (PostgreSQL 15) with AWS Mumbai (`ap-south-1`) region for minimal sub-15ms latency to Indian operational desks.
+- **Frontend:** deployable to Vercel with `NEXT_PUBLIC_API_URL` pointing at the backend. This was not exercised during the audit.
+- **Backend:** a standard ASGI app (`uvicorn app.main:app`) suitable for Render, Fly.io, or ECS. **No Dockerfile is included in this repository**, and no container build or deployment has been verified. If you need containers, add and test a Dockerfile before claiming containerized deployment.
+- **Database:** any PostgreSQL 13+. The original Supabase project no longer exists, so a self-hosted or managed Postgres is required; see [Database Setup & Migrations](#database-setup--migrations). Latency was not measured.
 
 ---
 
 ## Zero-Hallucination Compliance
 
-SoyBuy implements an unyielding zero-hallucination architecture:
-1. **No Synthetic Numbers in UI:** The frontend renders figures strictly received from `/api/v1/*` responses backed by stored run IDs.
-2. **Template-Based Natural Language:** Explanations are produced by deterministic rule grammar evaluating mathematical facts; ungrounded generative LLM inference is structurally prohibited.
-3. **Point-in-Time Immutability:** Procurement decisions, audit logs, and settings versions cannot be altered or deleted once written; enforced by PostgreSQL triggers.
+1. **No client-side business arithmetic:** `scripts/check-no-literals.mjs` fails the build if currency symbols, grouped numbers, or business-unit suffixes are hard-coded in `apps/web/src`.
+2. **Deterministic explanations:** recommendation text comes from rule templates bound to computed facts, never from a generative model.
+3. **Honest blocked states:** when real data is missing, the API returns HTTP 409 with a `blockers` list instead of a fabricated fallback (`app/services/blocked.py`, `app/services/capabilities.py`).
+4. **Append-only records:** decisions, audit logs, plans, forecasts, and settings versions are protected by database triggers.
+
+---
+
+## Known Limitations
+
+- **Import parity is not contemporaneous.** The domestic series ends 2017-06-19 while
+  the CBOT/FX snapshots run to 2026-10-05, so the reported ₹27,243/t import gap compares
+  prices from different years. It exercises the formulas; it is not a real 2017 arbitrage.
+- **The import route has no historical replay.** The backtest is domestic-only.
+- **Backtest demand is modelled**, not realised consumption history.
+- **`model_selection` is stored but not honoured.** The forecast engine always selects a
+  model per horizon by walk-forward pinball loss (`persistence` won on this data), so the
+  Settings dropdown does not force a model.
+- **Decisions need an authenticated user.** With no `app_user_profile` row, Approve /
+  Modify / Reject open the sign-in modal and no decision is written; the API returns
+  HTTP 409 `AUTH_REQUIRED` rather than inventing an actor.
+- **The first forecast row is labelled `Week +1` but carries the origin week's date.**
+- **`src/lib/format.test.ts` imports `vitest`, which is not a dependency**, so
+  `tsc --noEmit` reports it and no frontend unit tests execute.
+- The UI is a single page with tab views; deep-linking to a view is not supported.
+- `--muted` (3.60:1) and `--amber` (4.20:1) do not meet WCAG AA for body text.
+- No Dockerfile, no CI configuration, and no deployment pipeline are included.
 
 ---
 
 ## License
-  
-- **License:** Distributed under the MIT License. See `LICENSE` for more information.
+
+Distributed under the MIT License. See `LICENSE`.

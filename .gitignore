@@ -75,6 +75,7 @@ coverage.xml
 .ruff_cache/
 
 # --- Logs & Runtime Temporary Data ---
+.localdb/
 *.log
 *.tmp
 *.bak
@@ -96,3 +97,6 @@ Thumbs.db
 .vscode/
 *.sublime-project
 *.sublime-workspace
+
+# TypeScript incremental build cache
+*.tsbuildinfo

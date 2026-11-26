@@ -1,5 +1,7 @@
 # SoyBuy: Truth, Wiring and UI/UX Implementation Plan
 
+> **Provenance note:** this plan references `SoyBuy_Master_Spec.md` and `SoyBuy_Master_Build_Prompt.md`, neither of which is present in this repository. Where these plans disagree with the shipped code, migrations and tests, the code wins.
+
 | Field | Value |
 |---|---|
 | Project | SoyBuy, PS-035, Sakthi Hackathon 2.0, Team SKH2-2026-00462 |

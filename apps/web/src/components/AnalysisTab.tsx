@@ -26,7 +26,7 @@ export function AnalysisTab({ forecast, seasonality, onForecastRetrained }: Anal
       const updated = await triggerForecast(selectedTarget);
       addNotification({
         title: 'Forecast Retrained',
-        message: `Quantile Gradient Boosting retrained for ${selectedTarget}. 12-week prediction bands calibrated.`,
+        message: `${updated.model_name || 'Model'} retrained for ${selectedTarget}. 12-week p10/p50/p90 bands returned.`,
         type: 'success',
       });
       onForecastRetrained(updated);
@@ -51,8 +51,8 @@ export function AnalysisTab({ forecast, seasonality, onForecastRetrained }: Anal
       {/* ─── FORECAST CONTROL BAR ─────────────────────────── */}
       <Card
         title="12-Week Quantile Price Forecast (p10 / p50 / p90)"
-        eyebrow="QUANTILE GRADIENT BOOSTING · POINT-IN-TIME"
-        intro={`Target: ${forecast?.target || selectedTarget} · Model: ${forecast?.model_name?.toUpperCase() || 'QGBM'} · Origin Date: ${forecast?.origin_date || 'Current'}. Quantile bands calibrate 80% empirical prediction coverage.`}
+        eyebrow={`${(forecast?.model_name || 'MODEL').toUpperCase()} · POINT-IN-TIME`}
+        intro={`Target: ${forecast?.target || selectedTarget} · Model: ${forecast?.model_name?.toUpperCase() || '—'} · Origin Date: ${forecast?.origin_date || 'Current'}. Bands are the server's calibrated p10/p50/p90 output.`}
         actions={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <select
@@ -79,7 +79,7 @@ export function AnalysisTab({ forecast, seasonality, onForecastRetrained }: Anal
         {points.length === 0 ? (
           <EmptyState
             title="No Forecast Points Available"
-            description="Quantile prediction bands have not been generated yet. Click 'Retrain Model' to fit quantile gradient boosting models on active history."
+            description="Prediction bands have not been generated yet. Click 'Retrain Model' to fit the forecast model on active history."
             action={{
               label: 'Train Forecast Now',
               onClick: handleRetrain,
@@ -96,7 +96,7 @@ export function AnalysisTab({ forecast, seasonality, onForecastRetrained }: Anal
                   <th>LOWER BOUND (p10)</th>
                   <th>MEDIAN PREDICTION (p50)</th>
                   <th>UPPER BOUND (p90)</th>
-                  <th>BAND SPREAD (p90 - p10)</th>
+                  <th>BAND HALF-WIDTH ±(p90 − p10)/2</th>
                 </tr>
               </thead>
               <tbody>

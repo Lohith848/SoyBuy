@@ -29,7 +29,9 @@ export function DashboardTab({
   onOpenDecisionModal,
 }: DashboardTabProps) {
   const currentCostDiff = parity?.parity_gap_inr_per_t;
-  const isImportCheaper = typeof currentCostDiff === 'number' && currentCostDiff > 0;
+  // parity_gap_inr_per_t is defined as import - domestic, so a NEGATIVE gap
+  // means the import route is the cheaper one.
+  const isImportCheaper = typeof currentCostDiff === 'number' && currentCostDiff < 0;
   const buyPlan = recommendation?.buy_plan;
   const planLines = buyPlan?.plan_lines || [];
 

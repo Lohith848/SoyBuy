@@ -1,6 +1,6 @@
 # 📘 SoyBuy — Complete Codebase Architecture & Developer Guide
 
-> **Document File:** `CODEBASE.md`  
+> **Document File:** `docs/ARCHITECTURE.md`  
 > **Repository:** `SoyBean` (`soybuy`)  
 > **Problem Statement:** PS-035 | Theme: AI/ML & Predictive Decision Support (THEME-04) | Sakthi Hackathon 2.0  
 > **Target Enterprise:** ABT-CPD (Crush Plant Operations)  
@@ -52,15 +52,15 @@ Commodity soybean crushing operates on razor-thin operating margins. Traditional
 * **Mixed-Integer Linear Programming (MILP) Optimizer:** Solves optimal weekly lot procurement over 12 weeks using the PuLP/CBC solver.
 * **Zero-Hallucination Natural Language Explanations:** Template-backed explainability engine that links every recommendation and bullet point directly to mathematical facts and stored data without ungrounded LLM inference.
 * **Interactive What-If Scenario Sandbox:** Live sliders to stress-test plans against price shocks, currency volatility, port strikes, and demand surges.
-* **Walk-Forward Historical Replay (Backtest):** Proven **4.18% direct procurement savings** (~₹3.78 Cr on 18,200 tonnes crush requirement) compared to traditional static reordering.
+* **Walk-Forward Historical Replay (Backtest):** Compares the MILP policy against static reorder-point, buy-as-needed, and perfect-foresight baselines with a bootstrap confidence interval. The only reproducible run so far (real Agmarknet prices 2013-12-30 to 2017-06-19, synthetic constant demand, domestic route only) showed 8.1542% lower total spend but a slightly higher average cost per tonne; see README "Validation" for the full, unflattering result.
 * **Audit-Ready Decision Governance:** Immutable log capturing every buyer approval, override, and commercial note.
 
 ### 1.4 Overall Architecture
 SoyBuy is structured as a decoupled monorepo:
 * **Frontend:** Next.js 14 (React 18, TypeScript, Tailwind CSS, Lucide icons) running on port `3000`.
-* **Backend:** FastAPI (Python 3.11+, Pydantic v2, PuLP, Scikit-Learn, Statsmodels) running on port `8000`.
+* **Backend:** FastAPI (Python 3.10, verified on 3.10.11; Pydantic v2, PuLP, Scikit-Learn, Statsmodels) running on port `8000`.
 * **Database:** PostgreSQL (Supabase) with row-level security (RLS), versioned SQL migrations, and point-in-time timestamps.
-* **Containerization & CI:** Docker, Docker Compose, and GitHub Actions test runner.
+* **Containerization & CI:** **Not included.** No Dockerfile, `docker-compose.yml`, or CI workflow exists in this repository, and no container build or deployment has been verified. Treat the stack as run-from-source only.
 
 ---
 
@@ -68,9 +68,6 @@ SoyBuy is structured as a decoupled monorepo:
 
 ```
 SoyBean/
-├── .github/
-│   └── workflows/
-│       └── ci.yml               # GitHub Actions CI (backend tests & frontend build)
 ├── apps/
 │   ├── api/                     # FastAPI backend application
 │   │   ├── app/
@@ -118,20 +115,13 @@ SoyBean/
 │       ├── postcss.config.js    # PostCSS Tailwind plugin
 │       ├── tailwind.config.js   # Tailwind custom soy/gold palette & glass styling
 │       └── tsconfig.json        # TypeScript configuration
-├── docker/
-│   ├── Dockerfile.api           # Multi-stage production container for Python + CBC
-│   └── Dockerfile.web           # Production container for Next.js
 ├── supabase/
 │   └── migrations/              # Production database migrations (Part D)
 │       ├── 0001_schema.sql      # Complete 24-table DDL schema & triggers
 │       ├── 0002_access.sql      # RLS policies & privilege lockdown
 │       └── 0003_seed_catalog.sql# Series catalog metadata seeds
 ├── .env.example                 # Environment configuration template
-├── CODEBASE.md                  # This master documentation file
-├── docker-compose.yml           # Unified stack container orchestrator
 ├── README.md                    # Project overview & quickstart
-├── soy.md                       # Phase-by-phase build blueprint
-└── SoyBuy_Master_Spec.md        # 2,347-line master specification (PRD, TRD, DDL)
 ```
 
 ### Major Directory Purposes
@@ -140,7 +130,6 @@ SoyBean/
 * `apps/api/app/schemas`: Pydantic models ensuring strict schema validation and Swagger generation.
 * `apps/web/src/app`: App Router frontend containing layout, styling, and reactive dashboard views.
 * `supabase/migrations`: SQL migration scripts managing schema versioning, row-level security, and reference data.
-* `docker/`: Isolated container definitions bundling C++ solvers (`coinor-cbc`) and Node.js environments.
 
 ---
 
@@ -197,10 +186,7 @@ sequenceDiagram
 | File | Purpose | Key Exports / Logic | Connections |
 |---|---|---|---|
 | [.env.example](file:///c:/Users/Lohith%20G/Downloads/SoyBean/.env.example) | Configuration template | Defines default ports, CORS origins, Supabase URLs, and keys. | Read by local dev environments and containers. |
-| [docker-compose.yml](file:///c:/Users/Lohith%20G/Downloads/SoyBean/docker-compose.yml) | Multi-container setup | Orchestrates `api` (port 8000) and `web` (port 3000). | References `docker/Dockerfile.api` and `docker/Dockerfile.web`. |
-| [README.md](file:///c:/Users/Lohith%20G/Downloads/SoyBean/README.md) | Project entry documentation | Architecture overview, proven savings, and quickstart commands. | Primary reference for judges and contributors. |
-| [SoyBuy_Master_Spec.md](file:///c:/Users/Lohith%20G/Downloads/SoyBean/SoyBuy_Master_Spec.md) | Single Source of Truth | 2,347 lines covering PRD, TRD, DDL, API, and verification register. | Source for all formulas, tests, and schema migrations. |
-| [soy.md](file:///c:/Users/Lohith%20G/Downloads/SoyBean/soy.md) | Engineering Build Guide | Phase-by-phase implementation instructions from zero to prototype. | Defines epic breakdowns and acceptance gates. |
+| [README.md](file:///c:/Users/Lohith%20G/Downloads/SoyBean/README.md) | Project entry documentation | Architecture overview, measured validation, and quickstart commands. | Primary reference for judges and contributors. |
 
 ---
 
@@ -344,7 +330,7 @@ sequenceDiagram
   * **Tab 3: Price Forecast:** Visual 12-week $p_{10}/p_{50}/p_{90}$ fan envelope with model quality metric cards.
   * **Tab 4: Landed Cost Parity:** Itemized stacked comparison table between domestic mandi and Nhava Sheva import.
   * **Tab 5: Audit Trail & Decisions:** Append-only log of buyer actions with CSV export.
-  * **Tab 6: Replay Proof:** Walk-forward backtest results showing 4.18% savings over baseline rules.
+  * **Tab 6: Replay Proof:** Walk-forward backtest results against the baseline rules, reported as produced by the engine (including when SoyBuy does not beat the baseline on unit cost).
   * **Tab 7: Operating Settings:** Editable forms for factory constraints (capacity, safety stock, lead times, duties, freight).
   * **Interactive Modals:** Approve, Modify, and Reject modal dialogs.
 
@@ -649,9 +635,7 @@ erDiagram
 * **Tailwind (`apps/web/tailwind.config.js`):** Extends default palettes with custom `soy` amber shades, `slate-850/950` dark backgrounds, and custom glow shadows.
 
 ### 11.2 Deployment Configuration
-* **`docker-compose.yml`:** Defines two linked services (`api` and `web`) with health checks, environment propagation, and port mappings (`8000:8000`, `3000:3000`).
-* **`docker/Dockerfile.api`:** Uses `python:3.11-slim`, installs `coinor-cbc` system binaries, copies dependencies, and runs `uvicorn`.
-* **`docker/Dockerfile.web`:** Multi-stage build using `node:20-alpine` compiling static Next.js assets to produce a lightweight runner image.
+No container or deployment configuration is present. The backend runs from source with `uvicorn app.main:app`; the frontend runs with `next build && next start`. Nothing in this repository has been containerised, and no hosted deployment has been verified.
 
 ---
 
@@ -720,16 +704,16 @@ sequenceDiagram
 * **Epic E5 (Landed Cost Engine):** Built formulaic pure functions in `landed_cost.py` passing golden tests `GT-LC-01` and `GT-LC-02`.
 * **Epic E6 (MILP Optimizer):** Implemented Mixed-Integer Linear Program in `optimizer.py` passing golden test `GT-OPT-01`.
 * **Epic E7 (Explainability Engine):** Built fact-driven template engine in `explain.py` with zero hallucination.
-* **Epic E8 (FastAPI Routing):** Implemented 41 API endpoints across 14 router modules.
+* **Epic E8 (FastAPI Routing):** 46 OpenAPI operations across 40 paths, served by 14 router modules (counted from `/api/openapi.json` on 2026-11-26).
 * **Epic E9 (Web Dashboard):** Built 7-tab Next.js executive dashboard with what-if scenario sliders and decision action modals.
-* **Epic E10 (CI/CD & Containers):** Added Dockerfiles, `docker-compose.yml`, and GitHub Actions CI workflow.
+* **Epic E10 (CI/CD & Containers):** **Not implemented.** No Dockerfile, Compose file, or CI workflow exists; this epic remains outstanding.
 
 ---
 
 ## 16. Developer & Deployment Guide
 
 ### 16.1 Prerequisites
-* **Python:** 3.11 or later (tested on 3.11 and 3.14).
+* **Python:** 3.10 — verified on CPython 3.10.11 in `apps/api/.venv`.
 * **Node.js:** v18, v20, or v22 (npm v10+).
 * **CBC Solver:** Included automatically via PuLP wheels on Windows/macOS; install `coinor-cbc` on Linux (`sudo apt-get install -y coinor-cbc`).
 

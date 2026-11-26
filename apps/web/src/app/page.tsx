@@ -231,7 +231,7 @@ export default function Home() {
           <span>SoyBuy Dynamic Decision Support System · Problem Statement PS-035</span>
           <span>
             <span className="footer-mark" />
-            ABT-CPD Commercial Desk · Point-In-Time Clean Execution
+            {' · ABT-CPD Commercial Desk · Point-In-Time Clean Execution'}
           </span>
         </footer>
       </main>

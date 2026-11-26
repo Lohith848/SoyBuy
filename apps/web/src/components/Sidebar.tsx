@@ -119,7 +119,7 @@ export function Sidebar({
         <div className="sidebar-bottom">
           <div className="system-status">
             <span className="pulse-dot" />
-            <span>Database Live · WCAG AA</span>
+            <span>Database Live</span>
           </div>
           <div className="sidebar-footer">
             <div className="footer-avatar">SH</div>
