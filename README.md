@@ -5,6 +5,7 @@
 > **Target Enterprise:** ABT-CPD (Agri-Business Trading - Crush Plant Division)  
 > **Status:** Hackathon prototype (not production-deployed) | **License:** MIT
 
+
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.143-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014.2%20(App%20Router)-black?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](https://python.org/)
